@@ -34,7 +34,7 @@ namespace OrionInc.Data
                 Port = cfg.GetProperty("Port").GetInt32(),
                 Database = cfg.GetProperty("Database").GetString(),
                 Username = cfg.GetProperty("Username").GetString(),
-                Password = cfg.GetProperty("Password").GetString(),
+                Password = Environment.GetEnvironmentVariable("ORION_DB_PASSWORD") ?? (cfg.TryGetProperty("Password", out var password) ? password.GetString() : null) ?? string.Empty,
                 Timeout = 15,
                 CommandTimeout = 30
             };
@@ -47,6 +47,13 @@ namespace OrionInc.Data
         {
             var conn = new NpgsqlConnection(ConnectionString);
             conn.Open();
+            // Contexto da sessão consumido pelos triggers de auditoria. É redefinido
+            // em toda conexão para não herdar identidade de uma conexão agrupada.
+            using (var context = new NpgsqlCommand("SELECT set_config('orion.usuario_id', @actor, false), set_config('orion.origem', 'DESKTOP', false), set_config('orion.ip', '', false)", conn))
+            {
+                context.Parameters.AddWithValue("actor", string.IsNullOrWhiteSpace(Sessao.NomeUsuario) ? "sistema/desconhecido" : Sessao.NomeUsuario);
+                context.ExecuteNonQuery();
+            }
             return conn;
         }
 
