@@ -1,4 +1,5 @@
 using OrionInc.Data;
+using OrionInc.Services;
 
 namespace OrionInc.Forms
 {
@@ -36,13 +37,14 @@ namespace OrionInc.Forms
                 ("Alertas Ativos", () => AbrirTela(new FormAlertas()))
             };
 
-            // Somente quem possui permissão pode acessar
-            // o módulo de gerenciamento de usuários.
             if (Sessao.PodeEditarUsuarios)
             {
                 botoes.Add(
-                    ("Usuários do Sistema",
-                    () => AbrirTela(new FormUsuarios())));
+                    (
+                        "Usuários do Sistema",
+                        () => AbrirTela(new FormUsuarios())
+                    )
+                );
             }
 
             int x = 30;
@@ -74,7 +76,23 @@ namespace OrionInc.Forms
                 btn.FlatAppearance.BorderColor =
                     Color.FromArgb(210, 220, 232);
 
-                btn.Click += (_, _) => acao();
+                btn.Click += (_, _) =>
+                {
+                    try
+                    {
+                        acao();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            this,
+                            "Não foi possível abrir o módulo.\n\n" +
+                            ex.Message,
+                            "ORION INC",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                };
 
                 Controls.Add(btn);
 
@@ -87,7 +105,6 @@ namespace OrionInc.Forms
                 }
             }
 
-            // Exibe o perfil atual e suas permissões.
             var lblPermissoes = new Label
             {
                 Text =
@@ -115,8 +132,26 @@ namespace OrionInc.Forms
                 FlatStyle = FlatStyle.Flat
             };
 
-            btnSair.Click += (_, _) =>
+            btnSair.Click += async (_, _) =>
             {
+                int idUsuario = Sessao.IdUsuario;
+
+                try
+                {
+                    // Não bloqueia a interface com GetResult().
+                    await AuditService.RegistrarAsync(
+                        "LOGOUT",
+                        "usuarios",
+                        idUsuario > 0 ? idUsuario.ToString() : null,
+                        "SUCESSO",
+                        "Sessão encerrada pelo usuário através do menu principal.",
+                        "FormMenu");
+                }
+                catch
+                {
+                    // Auditoria nunca deve impedir o logout.
+                }
+
                 Sessao.Limpar();
                 Close();
             };
@@ -131,10 +166,36 @@ namespace OrionInc.Forms
 
         private static void AbrirTela(Form tela)
         {
+            // IMPORTANTE:
+            // Não usar .GetAwaiter().GetResult() aqui.
+            //
+            // Esse método era o responsável pelo travamento da interface.
+            // O log será disparado sem bloquear a thread do WinForms.
+
+            _ = RegistrarAberturaModuloAsync(tela);
+
             using (tela)
             {
                 tela.StartPosition = FormStartPosition.CenterScreen;
                 tela.ShowDialog();
+            }
+        }
+
+        private static async Task RegistrarAberturaModuloAsync(Form tela)
+        {
+            try
+            {
+                await AuditService.RegistrarAsync(
+                    "MODULO_ABERTO",
+                    "modulo",
+                    tela.GetType().Name,
+                    "SUCESSO",
+                    $"Módulo {tela.Text} aberto pelo usuário.",
+                    "FormMenu");
+            }
+            catch
+            {
+                // O log não pode impedir a abertura do módulo.
             }
         }
     }

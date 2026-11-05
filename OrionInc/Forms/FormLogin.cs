@@ -148,6 +148,19 @@ namespace OrionInc.Forms
             {
                 using var conn = DatabaseHelper.GetConnection();
 
+                await RegistrarEventoLogin(
+                    conn,
+                    null,
+                    email,
+                    "LOGIN_TENTATIVA",
+                    "Tentativa de autenticação iniciada.",
+                    new
+                    {
+                        emailInformado = email,
+                        horarioLocal = DateTimeOffset.Now,
+                        computador = Environment.MachineName
+                    });
+
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
@@ -186,7 +199,8 @@ namespace OrionInc.Forms
                             null,
                             email,
                             "LOGIN_FALHA",
-                            "Credenciais inválidas");
+                            "Usuário não encontrado para o e-mail informado.",
+                            new { emailInformado = email, motivo = "USUARIO_NAO_ENCONTRADO" });
 
                         MostrarErro("Usuário ou senha inválidos.");
                         return;
@@ -213,6 +227,20 @@ namespace OrionInc.Forms
                             reader.GetBoolean(ativoOrdinal);
                 }
 
+                await RegistrarEventoLogin(
+                    conn,
+                    userId,
+                    nome,
+                    "USUARIO_ENCONTRADO",
+                    "Conta localizada no PostgreSQL e dados básicos carregados.",
+                    new
+                    {
+                        emailInformado = email,
+                        usuarioId = userId,
+                        nivelAcesso = nivel,
+                        ativo
+                    });
+
                 if (!ativo)
                 {
                     await RegistrarEventoLogin(
@@ -220,7 +248,8 @@ namespace OrionInc.Forms
                         userId,
                         nome,
                         "LOGIN_FALHA",
-                        "Tentativa de login de usuário desativado");
+                        "Tentativa de login de usuário desativado.",
+                        new { emailInformado = email, motivo = "USUARIO_INATIVO", usuarioId = userId });
 
                     MostrarErro("Este usuário está desativado.");
                     return;
@@ -240,6 +269,17 @@ namespace OrionInc.Forms
                     senhaOk = false;
                 }
 
+                if (senhaOk)
+                {
+                    await RegistrarEventoLogin(
+                        conn,
+                        userId,
+                        nome,
+                        "VALIDACAO_SENHA_SUCESSO",
+                        "Hash BCrypt validado com sucesso. A senha nunca é gravada no log.",
+                        new { usuarioId = userId });
+                }
+
                 if (!senhaOk)
                 {
                     await RegistrarEventoLogin(
@@ -247,7 +287,8 @@ namespace OrionInc.Forms
                         userId,
                         nome,
                         "LOGIN_FALHA",
-                        "Senha inválida");
+                        "Senha inválida.",
+                        new { emailInformado = email, motivo = "SENHA_INVALIDA", usuarioId = userId });
 
                     MostrarErro("Usuário ou senha inválidos.");
                     return;
@@ -274,10 +315,34 @@ namespace OrionInc.Forms
                     userId,
                     nome,
                     "LOGIN_SUCESSO",
-                    "Autenticação concluída");
+                    "Autenticação concluída. Sessão inicializada e permissões carregadas.",
+                    new
+                    {
+                        emailInformado = email,
+                        emailUsuario = emailUsuario,
+                        nivelAcesso = nivel,
+                        permissoes = new
+                        {
+                            criarAlertas = Sessao.PodeCriarAlerta,
+                            aprovarManutencao = Sessao.PodeAprovarManutencao,
+                            editarUsuarios = Sessao.PodeEditarUsuarios
+                        }
+                    });
 
                 _lblStatus.ForeColor = Color.Green;
                 _lblStatus.Text = "Login realizado com sucesso.";
+
+                await RegistrarEventoLogin(
+                    conn,
+                    userId,
+                    nome,
+                    "DASHBOARD_ABERTA",
+                    "Tela principal de monitoramento preparada após autenticação.",
+                    new
+                    {
+                        usuarioId = userId,
+                        nivelAcesso = nivel
+                    });
 
                 Hide();
 
@@ -287,6 +352,26 @@ namespace OrionInc.Forms
             }
             catch (Exception ex)
             {
+                try
+                {
+                    await RegistrarEventoLogin(
+                        null,
+                        null,
+                        email,
+                        "LOGIN_ERRO",
+                        "Erro inesperado durante a autenticação ou carregamento das permissões.",
+                        new
+                        {
+                            emailInformado = email,
+                            tipoErro = ex.GetType().Name,
+                            mensagemTecnica = ex.Message
+                        });
+                }
+                catch
+                {
+                    // Auditoria nunca deve impedir a mensagem de erro ao usuário.
+                }
+
                 // Não deixa uma sessão parcial ativa após falha.
                 Sessao.Limpar();
 
@@ -323,71 +408,82 @@ namespace OrionInc.Forms
         }
 
         private static async Task RegistrarEventoLogin(
-            NpgsqlConnection conn,
+            NpgsqlConnection? conn,
             int? userId,
             string actor,
             string type,
-            string description)
+            string description,
+            object? details = null)
         {
-            var resultado =
-                type == "LOGIN_SUCESSO" ? "SUCESSO" : "FALHA";
+            var resultado = type == "LOGIN_TENTATIVA"
+                ? "INICIADO"
+                : type is "LOGIN_SUCESSO" or "USUARIO_ENCONTRADO" or "VALIDACAO_SENHA_SUCESSO" or "DASHBOARD_ABERTA"
+                    ? "SUCESSO"
+                    : "FALHA";
 
-            // A falha na auditoria do banco não impede o login.
+            string detalhesJson = details is null
+                ? "{}"
+                : System.Text.Json.JsonSerializer.Serialize(details);
+
             try
             {
-                const string sql = """
-                    INSERT INTO public.auditoria_eventos
-                    (
-                        tipo_evento,
-                        entidade,
-                        entidade_id,
-                        responsavel,
-                        origem,
-                        resultado,
-                        descricao
-                    )
-                    VALUES
-                    (
-                        @type,
-                        'usuarios',
-                        @id,
-                        @actor,
-                        'DESKTOP_LOGIN',
-                        @result,
-                        @description
-                    );
-                    """;
+                if (conn is not null)
+                {
+                    const string sql = """
+                        INSERT INTO public.auditoria_eventos
+                        (
+                            tipo_evento,
+                            entidade,
+                            entidade_id,
+                            id_usuario,
+                            responsavel,
+                            origem,
+                            resultado,
+                            descricao,
+                            modulo,
+                            detalhes,
+                            hostname
+                        )
+                        VALUES
+                        (
+                            @type,
+                            'usuarios',
+                            @id,
+                            @idUsuario,
+                            @actor,
+                            'DESKTOP_LOGIN',
+                            @result,
+                            @description,
+                            'FormLogin',
+                            CAST(@details AS jsonb),
+                            @hostname
+                        );
+                        """;
 
-                await using var cmd = new NpgsqlCommand(sql, conn);
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("type", type);
+                    cmd.Parameters.Add("id", NpgsqlTypes.NpgsqlDbType.Text).Value =
+                        (object?)userId?.ToString() ?? DBNull.Value;
+                    cmd.Parameters.Add("idUsuario", NpgsqlTypes.NpgsqlDbType.Integer).Value =
+                        (object?)userId ?? DBNull.Value;
+                    cmd.Parameters.AddWithValue(
+                        "actor",
+                        string.IsNullOrWhiteSpace(actor)
+                            ? "desconhecido"
+                            : actor);
+                    cmd.Parameters.AddWithValue("result", resultado);
+                    cmd.Parameters.AddWithValue("description", description);
+                    cmd.Parameters.AddWithValue("details", detalhesJson);
+                    cmd.Parameters.AddWithValue("hostname", Environment.MachineName);
 
-                cmd.Parameters.AddWithValue("type", type);
-
-                cmd.Parameters.Add(
-                    "id",
-                    NpgsqlTypes.NpgsqlDbType.Text).Value =
-                    (object?)userId?.ToString() ?? DBNull.Value;
-
-                cmd.Parameters.AddWithValue(
-                    "actor",
-                    string.IsNullOrWhiteSpace(actor)
-                        ? "desconhecido"
-                        : actor);
-
-                cmd.Parameters.AddWithValue("result", resultado);
-                cmd.Parameters.AddWithValue(
-                    "description",
-                    description);
-
-                await cmd.ExecuteNonQueryAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(
-                    "Falha na auditoria PostgreSQL: " + ex);
+                Debug.WriteLine("Falha na auditoria PostgreSQL: " + ex);
             }
 
-            // Grava também no arquivo TXT, sem bloquear a interface
-            // com chamadas síncronas de operações assíncronas.
             try
             {
                 await TxtAuditLogger.WriteAsync(
@@ -396,14 +492,16 @@ namespace OrionInc.Forms
                     "USUARIO",
                     userId?.ToString(),
                     actor,
-                    "DESKTOP",
+                    "DESKTOP_LOGIN",
                     resultado,
-                    description);
+                    description,
+                    null,
+                    "FormLogin",
+                    detalhesJson);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(
-                    "Falha na auditoria TXT: " + ex);
+                Debug.WriteLine("Falha na auditoria TXT: " + ex);
             }
         }
 

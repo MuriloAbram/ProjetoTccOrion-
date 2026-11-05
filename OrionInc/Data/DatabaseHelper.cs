@@ -49,9 +49,29 @@ namespace OrionInc.Data
             conn.Open();
             // Contexto da sessão consumido pelos triggers de auditoria. É redefinido
             // em toda conexão para não herdar identidade de uma conexão agrupada.
-            using (var context = new NpgsqlCommand("SELECT set_config('orion.usuario_id', @actor, false), set_config('orion.origem', 'DESKTOP', false), set_config('orion.ip', '', false)", conn))
+            using (var context = new NpgsqlCommand(
+                "SELECT " +
+                "set_config('orion.usuario_id', @actorId, false), " +
+                "set_config('orion.usuario_nome', @actorName, false), " +
+                "set_config('orion.origem', 'DESKTOP', false), " +
+                "set_config('orion.ip', '', false), " +
+                "set_config('orion.modulo', 'DESKTOP', false), " +
+                "set_config('orion.hostname', @hostname, false)",
+                conn))
             {
-                context.Parameters.AddWithValue("actor", string.IsNullOrWhiteSpace(Sessao.NomeUsuario) ? "sistema/desconhecido" : Sessao.NomeUsuario);
+                context.Parameters.AddWithValue(
+                    "actorId",
+                    Sessao.IdUsuario > 0
+                        ? Sessao.IdUsuario.ToString()
+                        : string.Empty);
+                context.Parameters.AddWithValue(
+                    "actorName",
+                    string.IsNullOrWhiteSpace(Sessao.NomeUsuario)
+                        ? "sistema/desconhecido"
+                        : Sessao.NomeUsuario);
+                context.Parameters.AddWithValue(
+                    "hostname",
+                    Environment.MachineName);
                 context.ExecuteNonQuery();
             }
             return conn;
