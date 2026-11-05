@@ -71,6 +71,8 @@ namespace OrionInc.Forms
                 _grid
             });
 
+            OrionUi.StyleModuleControls(this);
+
             Load += (_, _) => Recarregar();
         }
 

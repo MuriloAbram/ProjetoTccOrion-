@@ -10,7 +10,7 @@ public sealed class FormHistoricoLeituras : Form
     private readonly DataGridView _grid = new() { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, BackgroundColor = Color.White, RowHeadersVisible = false };
     public FormHistoricoLeituras(int sensorId)
     {
-        _sensorId = sensorId; Text = $"Histórico de leituras | Sensor #{sensorId}"; Width = 1000; Height = 600; StartPosition = FormStartPosition.CenterParent; Controls.Add(_grid); Shown += (_, _) => LoadReadings();
+        _sensorId = sensorId; Text = $"Histórico de leituras | Sensor #{sensorId}"; Width = 1000; Height = 600; StartPosition = FormStartPosition.CenterParent; Controls.Add(_grid); OrionUi.StyleModuleControls(this); Shown += (_, _) => LoadReadings();
     }
     private void LoadReadings()
     {

@@ -37,6 +37,8 @@ namespace OrionInc.Forms
             _grid.DoubleClick += (_, _) => EditarSelecionado();
 
             Controls.AddRange(new Control[] { btnNovo, btnEditar, btnExcluir, btnAtualizar, _grid });
+            OrionUi.StyleModuleControls(this);
+
             Load += (_, _) => Recarregar();
         }
 

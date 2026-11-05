@@ -1,202 +1,283 @@
 using OrionInc.Data;
 using OrionInc.Services;
 
-namespace OrionInc.Forms
+namespace OrionInc.Forms;
+
+public class FormMenu : Form
 {
-    public class FormMenu : Form
+    private readonly FlowLayoutPanel _modules = new();
+
+    public FormMenu()
     {
-        public FormMenu()
+        Text = "ORION INC - Menu Principal";
+        Width = 900;
+        Height = 680;
+        MinimumSize = new Size(820, 620);
+        StartPosition = FormStartPosition.CenterScreen;
+        BackColor = OrionUi.Background;
+        Font = new Font("Segoe UI", 9.5f);
+
+        BuildInterface();
+    }
+
+    private void BuildInterface()
+    {
+        var header = new Panel
         {
-            Text = "ORION INC - Menu Principal";
-            Width = 760;
-            Height = 620;
-            StartPosition = FormStartPosition.CenterScreen;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            BackColor = Color.FromArgb(243, 246, 250);
+            Dock = DockStyle.Top,
+            Height = 128,
+            BackColor = OrionUi.Navy,
+            Padding = new Padding(30, 18, 30, 12)
+        };
 
-            var lblBemVindo = new Label
-            {
-                Text = $"Bem-vindo, {Sessao.NomeUsuario}  ({Sessao.NivelAcesso})",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(30, 20)
-            };
-
-            Controls.Add(lblBemVindo);
-
-            var botoes = new List<(string texto, Action acao)>
-            {
-                ("Sensores", () => AbrirTela(new FormSensores())),
-                ("Auditoria", () => AbrirTela(new FormAuditoria())),
-                ("Funcionários", () => AbrirTela(new FormFuncionarios())),
-                ("Áreas de Risco", () => AbrirTela(new FormAreasRisco())),
-                ("Vagões", () => AbrirTela(new FormVagoes())),
-                ("Dispositivos (EPI)", () => AbrirTela(new FormDispositivos())),
-                ("Alertas Ativos", () => AbrirTela(new FormAlertas()))
-            };
-
-            if (Sessao.PodeEditarUsuarios)
-            {
-                botoes.Add(
-                    (
-                        "Usuários do Sistema",
-                        () => AbrirTela(new FormUsuarios())
-                    )
-                );
-            }
-
-            int x = 30;
-            int y = 70;
-
-            const int largura = 220;
-            const int altura = 52;
-            const int espacoX = 240;
-            const int espacoY = 62;
-
-            int col = 0;
-
-            foreach (var (texto, acao) in botoes)
-            {
-                var btn = new Button
-                {
-                    Text = texto,
-                    Width = largura,
-                    Height = altura,
-                    Location = new Point(
-                        x + col * espacoX,
-                        y),
-                    Font = new Font("Segoe UI", 10),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = Color.White,
-                    ForeColor = Color.FromArgb(20, 36, 59)
-                };
-
-                btn.FlatAppearance.BorderColor =
-                    Color.FromArgb(210, 220, 232);
-
-                btn.Click += (_, _) =>
-                {
-                    try
-                    {
-                        acao();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(
-                            this,
-                            "Não foi possível abrir o módulo.\n\n" +
-                            ex.Message,
-                            "ORION INC",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                    }
-                };
-
-                Controls.Add(btn);
-
-                col++;
-
-                if (col == 2)
-                {
-                    col = 0;
-                    y += espacoY;
-                }
-            }
-
-            var lblPermissoes = new Label
-            {
-                Text =
-                    $"Criar alertas: {SimNao(Sessao.PodeCriarAlerta)}   |   " +
-                    $"Aprovar manutenção: {SimNao(Sessao.PodeAprovarManutencao)}   |   " +
-                    $"Editar usuários: {SimNao(Sessao.PodeEditarUsuarios)}",
-                AutoSize = false,
-                Width = 680,
-                Height = 40,
-                Location = new Point(30, 455),
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(75, 85, 99)
-            };
-
-            Controls.Add(lblPermissoes);
-
-            var btnSair = new Button
-            {
-                Text = "Sair",
-                Width = 120,
-                Height = 36,
-                Location = new Point(30, 530),
-                BackColor = Color.IndianRed,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            btnSair.Click += async (_, _) =>
-            {
-                int idUsuario = Sessao.IdUsuario;
-
-                try
-                {
-                    // Não bloqueia a interface com GetResult().
-                    await AuditService.RegistrarAsync(
-                        "LOGOUT",
-                        "usuarios",
-                        idUsuario > 0 ? idUsuario.ToString() : null,
-                        "SUCESSO",
-                        "Sessão encerrada pelo usuário através do menu principal.",
-                        "FormMenu");
-                }
-                catch
-                {
-                    // Auditoria nunca deve impedir o logout.
-                }
-
-                Sessao.Limpar();
-                Close();
-            };
-
-            Controls.Add(btnSair);
-        }
-
-        private static string SimNao(bool permitido)
+        header.Controls.Add(new Label
         {
-            return permitido ? "Sim" : "Não";
-        }
+            Text = "ORION INC",
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 22, FontStyle.Bold),
+            AutoSize = true,
+            Location = new Point(30, 14)
+        });
 
-        private static void AbrirTela(Form tela)
+        header.Controls.Add(new Label
         {
-            // IMPORTANTE:
-            // Não usar .GetAwaiter().GetResult() aqui.
-            //
-            // Esse método era o responsável pelo travamento da interface.
-            // O log será disparado sem bloquear a thread do WinForms.
+            Text = "Central de Monitoramento Ferroviário",
+            ForeColor = Color.FromArgb(205, 220, 238),
+            Font = new Font("Segoe UI", 10.5f),
+            AutoSize = true,
+            Location = new Point(33, 52)
+        });
 
-            _ = RegistrarAberturaModuloAsync(tela);
-
-            using (tela)
-            {
-                tela.StartPosition = FormStartPosition.CenterScreen;
-                tela.ShowDialog();
-            }
-        }
-
-        private static async Task RegistrarAberturaModuloAsync(Form tela)
+        header.Controls.Add(new Label
         {
+            Text = $"{Sessao.NomeUsuario}  •  {Sessao.NivelAcesso}",
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+            AutoSize = true,
+            Location = new Point(33, 83)
+        });
+
+        var status = new Label
+        {
+            Text = "● SISTEMA OPERACIONAL",
+            ForeColor = Color.FromArgb(120, 220, 160),
+            Font = new Font("Segoe UI", 9, FontStyle.Bold),
+            AutoSize = true,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Location = new Point(header.ClientSize.Width - 220, 22)
+        };
+        header.Controls.Add(status);
+        header.Resize += (_, _) => status.Left = header.ClientSize.Width - status.Width - 30;
+
+        var section = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = 64,
+            BackColor = OrionUi.Background,
+            Padding = new Padding(30, 15, 30, 8)
+        };
+
+        section.Controls.Add(new Label
+        {
+            Text = "Módulos do sistema",
+            ForeColor = OrionUi.Text,
+            Font = new Font("Segoe UI", 13, FontStyle.Bold),
+            AutoSize = true,
+            Location = new Point(30, 12)
+        });
+
+        section.Controls.Add(new Label
+        {
+            Text = "Selecione uma área para consultar ou administrar os dados.",
+            ForeColor = OrionUi.Muted,
+            AutoSize = true,
+            Location = new Point(30, 36)
+        });
+
+        _modules.Dock = DockStyle.Fill;
+        _modules.Padding = new Padding(24, 8, 24, 18);
+        _modules.BackColor = OrionUi.Background;
+        _modules.FlowDirection = FlowDirection.LeftToRight;
+        _modules.WrapContents = true;
+        _modules.AutoScroll = true;
+
+        AddModule("Sensores", "Monitoramento, status e histórico", () => AbrirTela(new FormSensores()));
+        AddModule("Auditoria", "Eventos, filtros e rastreabilidade", () => AbrirTela(new FormAuditoria()));
+        AddModule("Funcionários", "Cadastro e situação operacional", () => AbrirTela(new FormFuncionarios()));
+        AddModule("Áreas de Risco", "Regiões e níveis de risco", () => AbrirTela(new FormAreasRisco()));
+        AddModule("Vagões", "Frota, status e manutenção", () => AbrirTela(new FormVagoes()));
+        AddModule("Dispositivos (EPI)", "Rastreamento de dispositivos", () => AbrirTela(new FormDispositivos()));
+        AddModule("Alertas Ativos", "Ocorrências que precisam de atenção", () => AbrirTela(new FormAlertas()));
+
+        if (Sessao.PodeEditarUsuarios)
+            AddModule("Usuários do Sistema", "Acessos, níveis e contas", () => AbrirTela(new FormUsuarios()));
+
+        var footer = new Panel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 76,
+            BackColor = Color.White,
+            Padding = new Padding(30, 12, 30, 10)
+        };
+
+        footer.Controls.Add(new Label
+        {
+            Text = $"Permissões  •  Alertas: {SimNao(Sessao.PodeCriarAlerta)}   |   " +
+                   $"Manutenção: {SimNao(Sessao.PodeAprovarManutencao)}   |   " +
+                   $"Usuários: {SimNao(Sessao.PodeEditarUsuarios)}",
+            ForeColor = OrionUi.Muted,
+            AutoSize = true,
+            Location = new Point(30, 14)
+        });
+
+        var btnSair = new Button
+        {
+            Text = "Sair da sessão",
+            Width = 135,
+            Height = 34,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Location = new Point(footer.ClientSize.Width - 165, 12)
+        };
+        OrionUi.StyleButton(btnSair, danger: true);
+        btnSair.Click += async (_, _) =>
+        {
+            btnSair.Enabled = false;
             try
             {
                 await AuditService.RegistrarAsync(
-                    "MODULO_ABERTO",
-                    "modulo",
-                    tela.GetType().Name,
+                    "LOGOUT",
+                    "usuarios",
+                    Sessao.IdUsuario > 0 ? Sessao.IdUsuario.ToString() : null,
                     "SUCESSO",
-                    $"Módulo {tela.Text} aberto pelo usuário.",
+                    "Sessão encerrada pelo usuário através do menu principal.",
                     "FormMenu");
             }
-            catch
+            catch { }
+
+            Sessao.Limpar();
+            Close();
+        };
+        footer.Controls.Add(btnSair);
+        footer.Resize += (_, _) => btnSair.Left = footer.ClientSize.Width - btnSair.Width - 30;
+
+        Controls.Add(_modules);
+        Controls.Add(section);
+        Controls.Add(footer);
+        Controls.Add(header);
+    }
+
+    private void AddModule(string title, string description, Action action)
+    {
+        var card = new Panel
+        {
+            Width = 390,
+            Height = 104,
+            Margin = new Padding(8),
+            BackColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            Cursor = Cursors.Hand
+        };
+
+        var accent = new Panel
+        {
+            Dock = DockStyle.Left,
+            Width = 6,
+            BackColor = OrionUi.Primary
+        };
+
+        var lblTitle = new Label
+        {
+            Text = title,
+            Font = new Font("Segoe UI", 11, FontStyle.Bold),
+            ForeColor = OrionUi.Text,
+            AutoSize = true,
+            Location = new Point(24, 18),
+            Cursor = Cursors.Hand
+        };
+
+        var lblDescription = new Label
+        {
+            Text = description,
+            Font = new Font("Segoe UI", 9),
+            ForeColor = OrionUi.Muted,
+            AutoSize = true,
+            Location = new Point(24, 48),
+            Cursor = Cursors.Hand
+        };
+
+        var arrow = new Label
+        {
+            Text = "›",
+            Font = new Font("Segoe UI", 22),
+            ForeColor = OrionUi.Primary,
+            AutoSize = true,
+            Location = new Point(340, 32),
+            Cursor = Cursors.Hand
+        };
+
+        void Open()
+        {
+            try
             {
-                // O log não pode impedir a abertura do módulo.
+                _ = RegistrarAberturaModuloAsync(title);
+                action();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this,
+                    $"Não foi possível abrir o módulo '{title}'.\n\n{ex.Message}",
+                    "ORION INC",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        card.Click += (_, _) => Open();
+        lblTitle.Click += (_, _) => Open();
+        lblDescription.Click += (_, _) => Open();
+        arrow.Click += (_, _) => Open();
+
+        card.MouseEnter += (_, _) =>
+        {
+            card.BackColor = Color.FromArgb(247, 250, 253);
+            accent.BackColor = Color.FromArgb(29, 72, 117);
+        };
+        card.MouseLeave += (_, _) =>
+        {
+            card.BackColor = Color.White;
+            accent.BackColor = OrionUi.Primary;
+        };
+
+        card.Controls.Add(arrow);
+        card.Controls.Add(lblDescription);
+        card.Controls.Add(lblTitle);
+        card.Controls.Add(accent);
+        _modules.Controls.Add(card);
+    }
+
+    private static string SimNao(bool value) => value ? "Sim" : "Não";
+
+    private static async Task RegistrarAberturaModuloAsync(string modulo)
+    {
+        try
+        {
+            await AuditService.RegistrarAsync(
+                "MODULO_ABERTO",
+                "modulo",
+                modulo,
+                "SUCESSO",
+                $"Módulo '{modulo}' aberto pelo usuário.",
+                "FormMenu");
+        }
+        catch { }
+    }
+
+    private static void AbrirTela(Form tela)
+    {
+        using (tela)
+        {
+            tela.StartPosition = FormStartPosition.CenterParent;
+            tela.ShowDialog();
         }
     }
 }

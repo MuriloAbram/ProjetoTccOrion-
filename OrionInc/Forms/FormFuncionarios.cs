@@ -46,6 +46,8 @@ namespace OrionInc.Forms
 
             Controls.AddRange(new Control[] { lblBusca, _txtBusca, btnBuscar, btnNovo, btnEditar, btnExcluir, _grid });
 
+            OrionUi.StyleModuleControls(this);
+
             Load += (_, _) => Recarregar();
         }
 

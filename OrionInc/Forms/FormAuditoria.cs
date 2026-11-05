@@ -184,6 +184,8 @@ public sealed class FormAuditoria : Form
         Controls.Add(split);
         Controls.Add(filters);
 
+        OrionUi.StyleModuleControls(this);
+
         Shown += (_, _) => LoadAudit();
     }
 

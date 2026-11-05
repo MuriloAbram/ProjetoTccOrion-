@@ -159,6 +159,8 @@ public sealed class FormSensores : Form
         Controls.Add(_grid);
         Controls.Add(top);
 
+        OrionUi.StyleModuleControls(this);
+
         Shown += (_, _) => LoadSensors();
 
         _search.KeyDown += (_, e) =>
