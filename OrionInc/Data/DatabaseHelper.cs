@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Data;
 using Npgsql;
 
 namespace OrionInc.Data
@@ -89,6 +90,30 @@ namespace OrionInc.Data
             {
                 return (false, ex.Message);
             }
+        }
+
+        public static DataTable GetLeiturasSensor(int sensorId, int limite = 2000)
+        {
+            limite = Math.Clamp(limite, 1, 5000);
+            using var conn = GetConnection();
+            using var cmd = new NpgsqlCommand(@"
+                SELECT recebido_em AS ""Recebido em"",
+                       horario_dispositivo AS ""Horário do dispositivo"",
+                       metrica AS ""Métrica"",
+                       valor AS ""Valor"",
+                       unidade AS ""Unidade"",
+                       codigo_dispositivo AS ""Dispositivo"",
+                       validacao AS ""Validação""
+                  FROM leituras_sensores
+                 WHERE id_sensor=@id
+                 ORDER BY recebido_em DESC
+                 LIMIT @limite;", conn);
+            cmd.Parameters.AddWithValue("id", sensorId);
+            cmd.Parameters.AddWithValue("limite", limite);
+            using var da = new NpgsqlDataAdapter(cmd);
+            var dt = new DataTable();
+            da.Fill(dt);
+            return dt;
         }
 
         public static void RecarregarConfiguracao() => _connectionString = null;

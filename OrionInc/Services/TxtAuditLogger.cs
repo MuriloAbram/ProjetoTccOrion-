@@ -28,6 +28,17 @@ public static class TxtAuditLogger
     {
         Directory.CreateDirectory(Root);
 
+        description = Sanitize(description);
+        if (description.Length > 300)
+            description = description[..300];
+
+        if (!string.IsNullOrWhiteSpace(details))
+        {
+            details = Sanitize(details);
+            if (details.Length > 1000)
+                details = details[..1000];
+        }
+
         var now = DateTimeOffset.Now;
         string safeCategory = Sanitize(category).ToLowerInvariant();
         string path = Path.Combine(
