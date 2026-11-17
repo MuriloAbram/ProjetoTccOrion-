@@ -532,7 +532,7 @@ public sealed class FormHistoricoLeituras : Form
             MessageBox.Show(
                 this,
                 "Não foi possível carregar o histórico " +
-                "de leituras.\n\n" +
+                "de leituras." +
                 ex.Message,
                 "Histórico de leituras",
                 MessageBoxButtons.OK,

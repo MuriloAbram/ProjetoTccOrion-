@@ -15,6 +15,8 @@ namespace OrionInc.Forms
 
         public FormNovaArea(AreaRisco? area)
         {
+            BackColor = OrionUi.Background;
+            Font = new Font("Segoe UI", 9.5f);
             _areaEditando = area;
 
             Text = area == null ? "Nova Área de Risco" : "Editar Área de Risco";
@@ -73,6 +75,8 @@ namespace OrionInc.Forms
             btnCancelar.Click += (_, _) => { DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(btnSalvar);
             Controls.Add(btnCancelar);
+
+            OrionUi.StyleModuleControls(this);
 
             if (_areaEditando != null)
             {

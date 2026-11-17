@@ -101,6 +101,7 @@ public class FormMenu : Form
         _modules.WrapContents = true;
         _modules.AutoScroll = true;
 
+        AddModule("Dashboard", "Visão geral e situação operacional", () => AbrirTela(new FormDashboard()));
         AddModule("Sensores", "Monitoramento, status e histórico", () => AbrirTela(new FormSensores()));
         AddModule("Auditoria", "Eventos, filtros e rastreabilidade", () => AbrirTela(new FormAuditoria()));
         AddModule("Funcionários", "Cadastro e situação operacional", () => AbrirTela(new FormFuncionarios()));
@@ -170,8 +171,8 @@ public class FormMenu : Form
     {
         var card = new Panel
         {
-            Width = 390,
-            Height = 104,
+            Width = 330,
+            Height = 112,
             Margin = new Padding(8),
             BackColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle,
@@ -211,7 +212,8 @@ public class FormMenu : Form
             Font = new Font("Segoe UI", 22),
             ForeColor = OrionUi.Primary,
             AutoSize = true,
-            Location = new Point(340, 32),
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Location = new Point(card.Width - 46, 36),
             Cursor = Cursors.Hand
         };
 
@@ -247,6 +249,8 @@ public class FormMenu : Form
             card.BackColor = Color.White;
             accent.BackColor = OrionUi.Primary;
         };
+
+        card.Resize += (_, _) => arrow.Left = card.ClientSize.Width - arrow.Width - 16;
 
         card.Controls.Add(arrow);
         card.Controls.Add(lblDescription);

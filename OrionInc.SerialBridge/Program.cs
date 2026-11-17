@@ -1,4 +1,4 @@
-﻿
+
 using System.Globalization;
 using System.IO.Ports;
 using System.Net.Http.Headers;
@@ -9,13 +9,33 @@ using System.Text.Json;
 // CONFIGURAÇÃO
 // ============================================================
 
-const string API_BASE_URL = "http://localhost:52500";
-const string SERIAL_PORT = "COM9";
-const int BAUD_RATE = 9600;
-const int SENSOR_ID = 1;
+string API_BASE_URL =
+    Environment.GetEnvironmentVariable("ORION_API_URL")
+    ?? "http://localhost:52500";
 
-// Coloque aqui o NOVO Device Token, gerado pela API.
-const string DEVICE_TOKEN = "3XSKU_281YPvn45Imhl_JICuS9sBRF47fd2R5lc4vcQ";
+string SERIAL_PORT =
+    Environment.GetEnvironmentVariable("ORION_SERIAL_PORT")
+    ?? "COM9";
+
+int BAUD_RATE =
+    int.TryParse(
+        Environment.GetEnvironmentVariable("ORION_BAUD_RATE"),
+        out var baud)
+        ? baud
+        : 9600;
+
+int SENSOR_ID =
+    int.TryParse(
+        Environment.GetEnvironmentVariable("ORION_SENSOR_ID"),
+        out var sensorId)
+        ? sensorId
+        : 1;
+
+// Nunca mantenha o token do dispositivo no código-fonte.
+// Configure ORION_DEVICE_TOKEN no ambiente da máquina.
+string DEVICE_TOKEN =
+    Environment.GetEnvironmentVariable("ORION_DEVICE_TOKEN")
+    ?? string.Empty;
 
 // ============================================================
 // HTTP

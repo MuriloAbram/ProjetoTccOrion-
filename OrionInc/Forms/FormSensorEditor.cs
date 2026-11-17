@@ -15,12 +15,15 @@ public sealed class FormSensorEditor : Form
     private readonly ComboBox _status = new() { Width = 160, DropDownStyle = ComboBoxStyle.DropDownList };
     public FormSensorEditor(int? id = null)
     {
+            BackColor = OrionUi.Background;
+            Font = new Font("Segoe UI", 9.5f);
         _id = id; Text = id.HasValue ? $"Editar sensor #{id}" : "Cadastrar sensor"; Width = 460; Height = 400; StartPosition = FormStartPosition.CenterParent; FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false;
         _status.Items.AddRange(new object[] { "online", "offline", "falha", "manutencao" }); _status.SelectedItem = "offline";
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 2, RowCount = 8 };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 145)); layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         AddRow(layout, 0, "Tipo do sensor", _type); AddRow(layout, 1, "Modelo", _model); AddRow(layout, 2, "Status", _status); AddRow(layout, 3, "ID Gateway", _gateway); AddRow(layout, 4, "ID Área de risco", _area); AddRow(layout, 5, "ID Vagão", _wagon);
         var save = new Button { Text = "Salvar", Width = 100, Height = 32 }; save.Click += (_, _) => Save(); var cancel = new Button { Text = "Cancelar", Width = 100, Height = 32 }; cancel.Click += (_, _) => Close(); var buttons = new FlowLayoutPanel { AutoSize = true }; buttons.Controls.AddRange(new Control[] { save, cancel }); layout.Controls.Add(buttons, 1, 6); Controls.Add(layout);
+        OrionUi.StyleModuleControls(this);
         if (_id.HasValue) LoadSensor();
     }
     private static void AddRow(TableLayoutPanel layout, int row, string label, Control input) { layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42)); layout.Controls.Add(new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left, TextAlign = ContentAlignment.MiddleLeft }, 0, row); input.Anchor = AnchorStyles.Left; layout.Controls.Add(input, 1, row); }
@@ -35,6 +38,6 @@ public sealed class FormSensorEditor : Form
         if (string.IsNullOrWhiteSpace(_type.Text) || string.IsNullOrWhiteSpace(_model.Text)) { MessageBox.Show(this, "Tipo e modelo são obrigatórios."); return; }
         try { using var c = DatabaseHelper.GetConnection(); using var cmd = new NpgsqlCommand(_id.HasValue ? "UPDATE sensores SET tipo_sensor=@type,modelo_sensor=@model,status_sensor=@status,id_gateway=@gateway,id_area=@area,id_vagao=@wagon WHERE id_sensor=@id" : "INSERT INTO sensores(tipo_sensor,modelo_sensor,status_sensor,id_gateway,id_area,id_vagao) VALUES(@type,@model,@status,@gateway,@area,@wagon)", c);
             cmd.Parameters.AddWithValue("type", _type.Text.Trim()); cmd.Parameters.AddWithValue("model", _model.Text.Trim()); cmd.Parameters.AddWithValue("status", _status.SelectedItem?.ToString() ?? "offline"); cmd.Parameters.Add("gateway", NpgsqlDbType.Integer).Value = NullableId(_gateway.Text, "Gateway"); cmd.Parameters.Add("area", NpgsqlDbType.Integer).Value = NullableId(_area.Text, "Área"); cmd.Parameters.Add("wagon", NpgsqlDbType.Integer).Value = NullableId(_wagon.Text, "Vagão"); if (_id.HasValue) cmd.Parameters.AddWithValue("id", _id.Value); cmd.ExecuteNonQuery(); DialogResult = DialogResult.OK; Close(); }
-        catch (Exception ex) { MessageBox.Show(this, "Não foi possível salvar. Confirme se os IDs de gateway, área e vagão existem.\n" + ex.Message, "Sensor", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+        catch (Exception ex) { MessageBox.Show(this, "Não foi possível salvar. Confirme se os IDs de gateway, área e vagão existem." + ex.Message, "Sensor", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
     }
 }

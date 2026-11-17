@@ -16,6 +16,8 @@ namespace OrionInc.Forms
 
         public FormNovoVagao(Vagao? vagao)
         {
+            BackColor = OrionUi.Background;
+            Font = new Font("Segoe UI", 9.5f);
             _vagaoEditando = vagao;
 
             Text = vagao == null ? "Novo Vagão" : "Editar Vagão";
@@ -78,6 +80,8 @@ namespace OrionInc.Forms
             btnCancelar.Click += (_, _) => { DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(btnSalvar);
             Controls.Add(btnCancelar);
+
+            OrionUi.StyleModuleControls(this);
 
             if (_vagaoEditando != null)
             {

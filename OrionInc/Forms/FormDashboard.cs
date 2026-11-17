@@ -276,7 +276,7 @@ public sealed class FormDashboard : Form
             {
                 MessageBox.Show(
                     this,
-                    "Não foi possível abrir o menu de módulos.\n\n" +
+                    "Não foi possível abrir o menu de módulos." +
                     ex.Message,
                     "ORION INC",
                     MessageBoxButtons.OK,
@@ -304,7 +304,7 @@ public sealed class FormDashboard : Form
             {
                 MessageBox.Show(
                     this,
-                    "Não foi possível abrir a tela de sensores.\n\n" +
+                    "Não foi possível abrir a tela de sensores." +
                     ex.Message,
                     "ORION INC",
                     MessageBoxButtons.OK,
@@ -330,7 +330,7 @@ public sealed class FormDashboard : Form
             {
                 MessageBox.Show(
                     this,
-                    "Não foi possível abrir a tela de auditoria.\n\n" +
+                    "Não foi possível abrir a tela de auditoria." +
                     ex.Message,
                     "ORION INC",
                     MessageBoxButtons.OK,
@@ -588,7 +588,7 @@ public sealed class FormDashboard : Form
 
             MessageBox.Show(
                 this,
-                "Não foi possível carregar os indicadores do PostgreSQL.\n\n" +
+                "Não foi possível carregar os indicadores do PostgreSQL." +
                 ex.Message,
                 "Dashboard",
                 MessageBoxButtons.OK,
@@ -1136,7 +1136,7 @@ public sealed class FormDashboard : Form
 
             _lastEvent.Text =
                 $"Último evento: {row["Evento"]} • " +
-                $"{row["Responsável"]}\r\n" +
+                $"{row["Responsável"]}\r" +
                 $"{row["Descrição"]}";
         }
         else

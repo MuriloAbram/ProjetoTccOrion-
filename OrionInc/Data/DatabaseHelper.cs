@@ -57,6 +57,7 @@ namespace OrionInc.Data
                 "set_config('orion.origem', 'DESKTOP', false), " +
                 "set_config('orion.ip', '', false), " +
                 "set_config('orion.modulo', 'DESKTOP', false), " +
+                "set_config('orion.nivel_acesso', @nivel, false), " +
                 "set_config('orion.hostname', @hostname, false)",
                 conn))
             {
@@ -70,6 +71,11 @@ namespace OrionInc.Data
                     string.IsNullOrWhiteSpace(Sessao.NomeUsuario)
                         ? "sistema/desconhecido"
                         : Sessao.NomeUsuario);
+                context.Parameters.AddWithValue(
+                    "nivel",
+                    string.IsNullOrWhiteSpace(Sessao.NivelAcesso)
+                        ? ""
+                        : Sessao.NivelAcesso);
                 context.Parameters.AddWithValue(
                     "hostname",
                     Environment.MachineName);

@@ -17,6 +17,9 @@ public static class OrionUi
     public static readonly Color Primary = Color.FromArgb(35, 86, 139);
     public static readonly Color Danger = Color.FromArgb(178, 61, 61);
     public static readonly Color Success = Color.FromArgb(35, 128, 88);
+    public static readonly Color Warning = Color.FromArgb(180, 118, 22);
+    public static readonly Color Info = Color.FromArgb(36, 111, 170);
+    public static readonly Color Surface = Color.FromArgb(248, 250, 252);
 
     public static void ApplyFormTheme(Form form, string? subtitle = null)
     {
@@ -167,6 +170,42 @@ public static class OrionUi
 
         foreach (var grid in FindControls<DataGridView>(form))
             StyleGrid(grid);
+    }
+
+    public static void StyleStatusLabel(Label label, string status)
+    {
+        var normalized = status.Trim().ToLowerInvariant();
+
+        label.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+        label.AutoSize = true;
+
+        switch (normalized)
+        {
+            case "online":
+            case "ativo":
+            case "resolvido":
+            case "sucesso":
+                label.ForeColor = Success;
+                break;
+
+            case "offline":
+            case "pendente":
+            case "atenção":
+            case "atencao":
+                label.ForeColor = Warning;
+                break;
+
+            case "falha":
+            case "crítico":
+            case "critico":
+            case "erro":
+                label.ForeColor = Danger;
+                break;
+
+            default:
+                label.ForeColor = Muted;
+                break;
+        }
     }
 
     private static IEnumerable<T> FindControls<T>(Control root)

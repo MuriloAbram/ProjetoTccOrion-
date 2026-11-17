@@ -17,80 +17,298 @@ namespace OrionInc.Forms
         public FormLogin()
         {
             Text = "ORION INC - Login";
-            Width = 420;
-            Height = 320;
+            ClientSize = new Size(820, 500);
+            MinimumSize = new Size(760, 460);
             StartPosition = FormStartPosition.CenterScreen;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-            MinimizeBox = false;
+            MinimizeBox = true;
+            BackColor = OrionUi.Background;
+            Font = new Font("Segoe UI", 9.5f);
+            KeyPreview = true;
 
-            var lblTitulo = new Label
+            var root = new TableLayoutPanel
             {
-                Text = "ORION INC",
-                Font = new Font("Segoe UI", 18, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(130, 25)
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                BackColor = OrionUi.Background
+            };
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 43f));
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 57f));
+
+            var brand = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = OrionUi.Navy,
+                Padding = new Padding(42)
             };
 
-            var lblSub = new Label
+            var brandLayout = new TableLayoutPanel
             {
-                Text = "Sistema de Monitoramento Ferroviário",
-                AutoSize = true,
-                Location = new Point(105, 60)
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 6,
+                BackColor = Color.Transparent
+            };
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+            brandLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+
+            var logo = new Label
+            {
+                Text = "ORION INC",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 25, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            var line = new Panel
+            {
+                Height = 3,
+                Width = 90,
+                BackColor = Color.FromArgb(62, 142, 214),
+                Anchor = AnchorStyles.Left
+            };
+
+            var subtitle = new Label
+            {
+                Text = "Sistema de Monitoramento\nFerroviário",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.FromArgb(220, 231, 244),
+                Font = new Font("Segoe UI", 13, FontStyle.Regular),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            var description = new Label
+            {
+                Text = "Monitoramento de sensores, dispositivos,\nalertas e operações ferroviárias em um único ambiente.",
+                Dock = DockStyle.Top,
+                ForeColor = Color.FromArgb(174, 193, 216),
+                Font = new Font("Segoe UI", 9.5f),
+                AutoSize = true
+            };
+
+            var systemStatus = new Label
+            {
+                Text = "●  AMBIENTE OPERACIONAL",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.FromArgb(122, 220, 166),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            var version = new Label
+            {
+                Text = "ORION INC  •  Monitoramento ferroviário",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.FromArgb(139, 158, 183),
+                Font = new Font("Segoe UI", 8.5f),
+                TextAlign = ContentAlignment.BottomLeft
+            };
+
+            brandLayout.Controls.Add(logo, 0, 0);
+            brandLayout.Controls.Add(line, 0, 1);
+            brandLayout.Controls.Add(subtitle, 0, 2);
+            brandLayout.Controls.Add(description, 0, 3);
+            brandLayout.Controls.Add(systemStatus, 0, 4);
+            brandLayout.Controls.Add(version, 0, 5);
+            brand.Controls.Add(brandLayout);
+
+            var content = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                Padding = new Padding(46, 42, 46, 36)
+            };
+
+            var contentLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 10,
+                BackColor = Color.White
+            };
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
+            contentLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var title = new Label
+            {
+                Text = "Acesso ao sistema",
+                Dock = DockStyle.Fill,
+                ForeColor = OrionUi.Text,
+                Font = new Font("Segoe UI", 19, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft
+            };
+
+            var helper = new Label
+            {
+                Text = "Entre com suas credenciais para continuar.",
+                Dock = DockStyle.Fill,
+                ForeColor = OrionUi.Muted,
+                Font = new Font("Segoe UI", 9.5f),
+                TextAlign = ContentAlignment.MiddleLeft
             };
 
             var lblEmail = new Label
             {
-                Text = "E-mail:",
-                Location = new Point(40, 105),
-                AutoSize = true
+                Text = "E-mail",
+                Dock = DockStyle.Fill,
+                ForeColor = OrionUi.Text,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                TextAlign = ContentAlignment.BottomLeft
             };
 
-            _txtEmail.Location = new Point(40, 125);
-            _txtEmail.Width = 320;
+            _txtEmail.Dock = DockStyle.Fill;
+            _txtEmail.Margin = new Padding(0, 6, 0, 6);
+            _txtEmail.Font = new Font("Segoe UI", 10.5f);
+            _txtEmail.PlaceholderText = "nome@empresa.com";
+            _txtEmail.BorderStyle = BorderStyle.FixedSingle;
 
             var lblSenha = new Label
             {
-                Text = "Senha:",
-                Location = new Point(40, 155),
-                AutoSize = true
+                Text = "Senha",
+                Dock = DockStyle.Fill,
+                ForeColor = OrionUi.Text,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                TextAlign = ContentAlignment.BottomLeft
             };
 
-            _txtSenha.Location = new Point(40, 175);
-            _txtSenha.Width = 320;
+            var passwordPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                Margin = new Padding(0, 6, 0, 6)
+            };
+
+            _txtSenha.Dock = DockStyle.Fill;
+            _txtSenha.Margin = new Padding(0, 0, 38, 0);
+            _txtSenha.Font = new Font("Segoe UI", 10.5f);
             _txtSenha.PasswordChar = '●';
+            _txtSenha.BorderStyle = BorderStyle.FixedSingle;
+            _txtSenha.PlaceholderText = "Digite sua senha";
 
-            _btnEntrar.Text = "Entrar";
-            _btnEntrar.Location = new Point(40, 215);
-            _btnEntrar.Width = 150;
-            _btnEntrar.Height = 32;
+            var btnMostrarSenha = new Button
+            {
+                Text = "Mostrar",
+                Width = 70,
+                Dock = DockStyle.Right,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.White,
+                ForeColor = OrionUi.Primary,
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnMostrarSenha.FlatAppearance.BorderSize = 0;
+            btnMostrarSenha.Click += (_, _) =>
+            {
+                _txtSenha.PasswordChar = _txtSenha.PasswordChar == '\0' ? '●' : '\0';
+                btnMostrarSenha.Text = _txtSenha.PasswordChar == '\0' ? "Ocultar" : "Mostrar";
+                _txtSenha.Focus();
+            };
+
+            passwordPanel.Controls.Add(_txtSenha);
+            passwordPanel.Controls.Add(btnMostrarSenha);
+
+            var options = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+
+            var capsLock = new Label
+            {
+                Text = "Caps Lock ativado",
+                AutoSize = true,
+                ForeColor = OrionUi.Warning,
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Visible = Control.IsKeyLocked(Keys.CapsLock),
+                Location = new Point(0, 5)
+            };
+
+            var hint = new Label
+            {
+                Text = "A senha diferencia maiúsculas e minúsculas.",
+                AutoSize = true,
+                ForeColor = OrionUi.Muted,
+                Font = new Font("Segoe UI", 8.5f),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            hint.Left = Math.Max(0, content.ClientSize.Width - hint.Width - content.Padding.Right - 5);
+            hint.Top = 5;
+
+            options.Controls.Add(capsLock);
+            options.Controls.Add(hint);
+            options.Resize += (_, _) =>
+                hint.Left = Math.Max(0, options.ClientSize.Width - hint.Width);
+
+            KeyPreview = true;
+            KeyDown += (_, _) =>
+            {
+                capsLock.Visible = Control.IsKeyLocked(Keys.CapsLock);
+            };
+
+            _btnEntrar.Text = "Entrar no sistema";
+            _btnEntrar.Dock = DockStyle.Fill;
+            _btnEntrar.Margin = new Padding(0, 4, 0, 4);
+            _btnEntrar.FlatStyle = FlatStyle.Flat;
+            _btnEntrar.FlatAppearance.BorderSize = 0;
+            _btnEntrar.BackColor = OrionUi.Primary;
+            _btnEntrar.ForeColor = Color.White;
+            _btnEntrar.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            _btnEntrar.Cursor = Cursors.Hand;
             _btnEntrar.Click += BtnEntrar_Click;
+            _btnEntrar.MouseEnter += (_, _) => _btnEntrar.BackColor = Color.FromArgb(29, 72, 117);
+            _btnEntrar.MouseLeave += (_, _) => _btnEntrar.BackColor = OrionUi.Primary;
 
-            _btnTestarConexao.Text = "Testar conexão";
-            _btnTestarConexao.Location = new Point(210, 215);
-            _btnTestarConexao.Width = 150;
-            _btnTestarConexao.Height = 32;
+            _btnTestarConexao.Text = "Testar conexão com o banco";
+            _btnTestarConexao.Dock = DockStyle.Fill;
+            _btnTestarConexao.FlatStyle = FlatStyle.Flat;
+            _btnTestarConexao.FlatAppearance.BorderSize = 1;
+            _btnTestarConexao.FlatAppearance.BorderColor = OrionUi.Border;
+            _btnTestarConexao.BackColor = Color.White;
+            _btnTestarConexao.ForeColor = OrionUi.Text;
+            _btnTestarConexao.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+            _btnTestarConexao.Cursor = Cursors.Hand;
             _btnTestarConexao.Click += BtnTestarConexao_Click;
 
-            _lblStatus.Location = new Point(40, 255);
-            _lblStatus.Width = 340;
-            _lblStatus.Height = 40;
-            _lblStatus.ForeColor = Color.DarkRed;
+            _lblStatus.Text = "Aguardando autenticação.";
+            _lblStatus.Dock = DockStyle.Fill;
+            _lblStatus.AutoEllipsis = true;
+            _lblStatus.ForeColor = OrionUi.Muted;
+            _lblStatus.Font = new Font("Segoe UI", 8.5f);
+            _lblStatus.TextAlign = ContentAlignment.MiddleLeft;
+
+            contentLayout.Controls.Add(title, 0, 0);
+            contentLayout.Controls.Add(helper, 0, 1);
+            contentLayout.Controls.Add(lblEmail, 0, 2);
+            contentLayout.Controls.Add(_txtEmail, 0, 3);
+            contentLayout.Controls.Add(lblSenha, 0, 4);
+            contentLayout.Controls.Add(passwordPanel, 0, 5);
+            contentLayout.Controls.Add(options, 0, 6);
+            contentLayout.Controls.Add(_btnEntrar, 0, 7);
+            contentLayout.Controls.Add(_btnTestarConexao, 0, 8);
+            contentLayout.Controls.Add(_lblStatus, 0, 9);
+
+            content.Controls.Add(contentLayout);
+
+            root.Controls.Add(brand, 0, 0);
+            root.Controls.Add(content, 1, 0);
+            Controls.Add(root);
 
             AcceptButton = _btnEntrar;
-
-            Controls.AddRange(new Control[]
-            {
-                lblTitulo,
-                lblSub,
-                lblEmail,
-                _txtEmail,
-                lblSenha,
-                _txtSenha,
-                _btnEntrar,
-                _btnTestarConexao,
-                _lblStatus
-            });
         }
 
         private async void BtnTestarConexao_Click(
@@ -336,6 +554,18 @@ namespace OrionInc.Forms
                     conn,
                     userId,
                     nome,
+                    "LOGIN_SUCESSO",
+                    "Autenticação concluída e sessão autorizada.",
+                    new
+                    {
+                        usuarioId = userId,
+                        nivelAcesso = nivel
+                    });
+
+                await RegistrarEventoLogin(
+                    conn,
+                    userId,
+                    nome,
                     "DASHBOARD_ABERTA",
                     "Tela principal de monitoramento preparada após autenticação.",
                     new
@@ -382,14 +612,7 @@ namespace OrionInc.Forms
                 _lblStatus.Text =
                     "Não foi possível concluir o login.";
 
-                MessageBox.Show(
-                    this,
-                    "Ocorreu um erro durante a autenticação " +
-                    "ou o carregamento das permissões.\n\n" +
-                    ex.Message,
-                    "Orion Inc - Login",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                _lblStatus.Text = "Erro de autenticação. Verifique o banco, as credenciais e as permissões.";
             }
             finally
             {
